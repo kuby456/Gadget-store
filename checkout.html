@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מילוי פרטי משלוח</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style2.css">
+  <style>
+    body {
+      font-family: "Heebo", sans-serif;
+      background: #f4f7fa;
+      text-align: center;
+      padding: 20px;
+    }
+    .checkout-box {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0002;
+      max-width: 450px;
+      margin: 30px auto;
+      padding: 25px;
+      text-align: center; /* מיישר את כל הטפסים לאמצע הקופסה */
+    }
+    h2 {
+      text-align: center;
+      color: #1e3a8a;
+      margin-bottom: 15px;
+    }
+    input, textarea {
+  display: block;
+  width: 90%;
+  margin: 8px auto;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  direction: rtl;     /* עברית */
+  text-align: right;  /* יישור טקסט לימין בתוך התיבה */
+}
+
+    textarea {
+      resize: none;
+      height: 80px;
+    }
+    button {
+      background: #0070ba;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      width: 100%;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #005ea6;
+    }
+    .summary {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>מילוי פרטי משלוח</h2>
+
+  <div class="checkout-box">
+    <form id="checkoutForm">
+      <input type="text" id="firstName" placeholder="שם פרטי" required>
+      <input type="text" id="lastName" placeholder="שם משפחה" required>
+      <input type="tel" id="phone" placeholder="מספר טלפון" required>
+      <input type="email" id="email" placeholder="אימייל" required>
+      <input type="text" id="city" placeholder="עיר" required>
+      <input type="text" id="street" placeholder="רחוב" required>
+      <input type="text" id="house" placeholder="מספר בית" required>
+      <input type="text" id="zipcode" placeholder="מיקוד" required>
+      <textarea id="notes" placeholder="הערות לשליח (אופציונלי)"></textarea>
+
+      <div class="summary">
+        <p id="totalSummary">סה״כ לתשלום: 0 ₪</p>
+      </div>
+
+      <button type="button" onclick="proceedToPayment()">המשך לתשלום 💳</button>
+    </form>
+  </div>
+
+  <script>
+    // מחשב את הסכום הכולל מהסל
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    document.getElementById("totalSummary").innerText = `סה״כ לתשלום: ${total.toFixed(2)} ₪`;
+
+    function proceedToPayment() {
+      // שמירה זמנית של פרטי המשתמש
+      const details = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        phone: document.getElementById("phone").value,
+        email: document.getElementById("email").value,
+        city: document.getElementById("city").value,
+        street: document.getElementById("street").value,
+        house: document.getElementById("house").value,
+        zipcode: document.getElementById("zipcode").value,
+        notes: document.getElementById("notes").value // הערות לשליח
+      };
+      localStorage.setItem("checkoutDetails", JSON.stringify(details));
+
+      // מעבר לדף התשלום (ניצור אותו בהמשך)
+      window.location.href = "payment.html";
+    }
+  </script>
+
+</body>
+</html>
