@@ -148,8 +148,11 @@ function quickBuy() {
     image: fixedImage
   };
 
-  // שומר בסל לזמן הביניים (כדי שהדף הבא ידע מה נבחר)
+  // שומר בסל זמני
   localStorage.setItem("quickBuyProduct", JSON.stringify(product));
+
+  // 🟢 שומר את הסכום הכולל עבור PayPal
+  localStorage.setItem("cartTotal", (product.price * product.quantity).toFixed(2));
 
   // מעביר לדף מילוי הפרטים
   window.location.href = "checkout.html";
