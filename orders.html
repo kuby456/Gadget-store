@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>רשימת ההזמנות</title>
+  <style>
+    body {
+      font-family: "Heebo", sans-serif;
+      background: #f4f7fa;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #1e3a8a;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 95%;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px #0002;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    th {
+      background: #1e3a8a;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .loading {
+      color: #1e3a8a;
+      font-weight: bold;
+      margin-top: 40px;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📦 רשימת ההזמנות שהתקבלו</h2>
+
+  <div id="status" class="loading">טוען נתונים מסופרבייס...</div>
+
+  <table id="ordersTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>תאריך</th>
+        <th>שם מלא</th>
+        <th>טלפון</th>
+        <th>אימייל</th>
+        <th>עיר</th>
+        <th>רחוב</th>
+        <th>מיקוד</th>
+        <th>סה״כ</th>
+        <th>הערות לשליח</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // 🔗 פרטי הפרויקט שלך
+    const SUPABASE_URL = "https://tgfqsmarvznpzwdixvye.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnZnFzbWFydnpucHp3ZGl4dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3OTM1NzEsImV4cCI6MjA3NjM2OTU3MX0.ui5rHWh8KgSmhYrl_unozb9rwAaZQeTNEeMZF63lhYM";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const statusDiv = document.getElementById("status");
+    const table = document.getElementById("ordersTable");
+    const tbody = document.querySelector("#ordersTable tbody");
+
+    async function loadOrders() {
+      // מושך את כל הנתונים מהטבלה orders
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.error("❌ שגיאה בטעינת נתונים:", error);
+        statusDiv.className = "error";
+        statusDiv.innerText = "שגיאה בטעינת הנתונים מסופרבייס 😢";
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        statusDiv.className = "error";
+        statusDiv.innerText = "אין הזמנות להצגה כרגע.";
+        return;
+      }
+
+      // מציג את הטבלה
+      statusDiv.style.display = "none";
+      table.style.display = "table";
+
+      // יוצר שורה לכל הזמנה
+      data.forEach(order => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${new Date(order.created_at).toLocaleString("he-IL")}</td>
+          <td>${order.first_name || ""} ${order.last_name || ""}</td>
+          <td>${order.phone || ""}</td>
+          <td>${order.email || ""}</td>
+          <td>${order.city || ""}</td>
+          <td>${order.street || ""} ${order.house || ""}</td>
+          <td>${order.zipcode || ""}</td>
+          <td>₪${order.total ? order.total.toFixed(2) : "0.00"}</td>
+          <td>${order.notes || ""}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    loadOrders();
+  </script>
+
+</body>
+</html>
