@@ -20,7 +20,7 @@
       max-width: 450px;
       margin: 30px auto;
       padding: 25px;
-      text-align: center; /* מיישר את כל הטפסים לאמצע הקופסה */
+      text-align: center;
     }
     h2 {
       text-align: center;
@@ -28,17 +28,16 @@
       margin-bottom: 15px;
     }
     input, textarea {
-  display: block;
-  width: 90%;
-  margin: 8px auto;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-  direction: rtl;     /* עברית */
-  text-align: right;  /* יישור טקסט לימין בתוך התיבה */
-}
-
+      display: block;
+      width: 90%;
+      margin: 8px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      direction: rtl;
+      text-align: right;
+    }
     textarea {
       resize: none;
       height: 80px;
@@ -91,14 +90,48 @@
     </form>
   </div>
 
-  <script>
+  <!-- חיבור לסופרבייס -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // פרטי הפרויקט שלך
+    const SUPABASE_URL = "https://tgfqsmarvznpzwdixvye.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnZnFzbWFydnpucHp3ZGl4dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3OTM1NzEsImV4cCI6MjA3NjM2OTU3MX0.ui5rHWh8KgSmhYrl_unozb9rwAaZQeTNEeMZF63lhYM";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
     // מחשב את הסכום הכולל מהסל
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     document.getElementById("totalSummary").innerText = `סה״כ לתשלום: ${total.toFixed(2)} ₪`;
 
-    function proceedToPayment() {
-      // שמירה זמנית של פרטי המשתמש
+    // פונקציית שליחה לסופרבייס
+    async function sendToSupabase(details, total) {
+      const { error } = await supabase
+        .from("orders")
+        .insert([{
+          first_name: details.firstName,
+          last_name: details.lastName,
+          phone: details.phone,
+          email: details.email,
+          city: details.city,
+          street: details.street,
+          house: details.house,
+          zipcode: details.zipcode,
+          notes: details.notes,
+          total: total
+        }]);
+
+      if (error) {
+        console.error("❌ שגיאה בשליחה ל-Supabase:", error);
+        alert("הייתה שגיאה בשמירת ההזמנה 😢");
+      } else {
+        alert("✅ ההזמנה נשמרה בהצלחה!");
+        window.location.href = "orders.html";
+      }
+    }
+
+    // כשלוחצים על הכפתור
+    window.proceedToPayment = async function() {
       const details = {
         firstName: document.getElementById("firstName").value,
         lastName: document.getElementById("lastName").value,
@@ -108,13 +141,10 @@
         street: document.getElementById("street").value,
         house: document.getElementById("house").value,
         zipcode: document.getElementById("zipcode").value,
-        notes: document.getElementById("notes").value // הערות לשליח
+        notes: document.getElementById("notes").value
       };
-      localStorage.setItem("checkoutDetails", JSON.stringify(details));
-
-      // מעבר לדף התשלום (ניצור אותו בהמשך)
-      window.location.href = "payment.html";
-    }
+      await sendToSupabase(details, total);
+    };
   </script>
 
 </body>
