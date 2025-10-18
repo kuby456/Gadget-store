@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>תשלום מאובטח</title>
+
+  <!-- טעינת SDK של PayPal -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AShimCEIc6wnrsHq1dAvydRSweM8E3XvQ6NeREZknU4F_WZgjPbJ4czu3UdTWOJ3uDOsDkRF4SKqcDsA&currency=ILS"></script>
+
+  <style>
+    body {
+      font-family: "Heebo", sans-serif;
+      background: #f4f7fa;
+      text-align: center;
+      padding: 30px;
+    }
+    h2 {
+      color: #1e3a8a;
+      margin-bottom: 20px;
+    }
+    .box {
+      background: white;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px #0002;
+    }
+    .summary {
+      background: #f1f5f9;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-weight: bold;
+      color: #1e3a8a;
+    }
+    #paypal-button-container {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>💳 תשלום מאובטח ב-PayPal</h2>
+    <div class="summary" id="totalText">טוען סכום...</div>
+    <div id="paypal-button-container"></div>
+  </div>
+
+  <script>
+    // טוען את הסכום ששמור ב-localStorage
+    const totalAmount = localStorage.getItem("cartTotal") || "0.00";
+    document.getElementById("totalText").innerText = `סה״כ לתשלום: ₪${parseFloat(totalAmount).toFixed(2)}`;
+
+    // מציג את כפתור PayPal
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: { value: totalAmount }
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          alert("✅ התשלום בוצע בהצלחה על ידי " + details.payer.name.given_name);
+          localStorage.removeItem("cart");
+          localStorage.removeItem("cartTotal");
+          window.location.href = "thankyou.html";
+        });
+      },
+      onError: function(err) {
+        console.error("שגיאה בתשלום:", err);
+        alert("⚠️ שגיאה במהלך התשלום. נסה שוב.");
+      }
+    }).render("#paypal-button-container");
+  </script>
+
+</body>
+</html>
