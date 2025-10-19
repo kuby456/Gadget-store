@@ -64,6 +64,17 @@
       font-weight: bold;
       text-align: center;
     }
+
+    .required::after {
+  content: " *";
+  color: red;
+  font-weight: bold;
+}
+input.error {
+  border-color: red;
+  background: #ffeaea;
+}
+
   </style>
 </head>
 <body>
@@ -98,10 +109,17 @@
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnZnFzbWFydnpucHp3ZGl4dnllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3OTM1NzEsImV4cCI6MjA3NjM2OTU3MX0.ui5rHWh8KgSmhYrl_unozb9rwAaZQeTNEeMZF63lhYM";
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // מחשב את הסכום הכולל מהסל
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  document.getElementById("totalSummary").innerText = `סה״כ לתשלום: ${total.toFixed(2)} ₪`;
+  // מחשב את הסכום הכולל מהסל או מקנייה מהירה
+let total = 0;
+const cart = JSON.parse(localStorage.getItem("cart")) || [];
+if (cart.length > 0) {
+  total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+} else {
+  const quick = JSON.parse(localStorage.getItem("quickBuyProduct"));
+  if (quick) total = quick.price * quick.quantity;
+}
+
+document.getElementById("totalSummary").innerText = `סה״כ לתשלום: ${total.toFixed(2)} ₪`;
 
   // פונקציית שליחה לסופרבייס
   async function sendToSupabase(details, total) {
@@ -148,17 +166,28 @@
       notes: document.getElementById("notes").value.trim()
     };
 
-    // בדיקה פשוטה – שכל השדות מולאו במשהו
-    for (const [key, value] of Object.entries(details)) {
-      if (key !== "notes" && value === "") {
-        alert("אנא מלא את כל השדות לפני ההמשך 🙏");
-        return;
-      }
-    }
+   // בדיקת שדות חובה עם סימון אדום
+let missing = false;
+["firstName", "lastName", "phone", "email", "city", "street", "house", "zipcode"].forEach(id => {
+  const input = document.getElementById(id);
+  if (input.value.trim() === "") {
+    input.classList.add("error");
+    missing = true;
+  } else {
+    input.classList.remove("error");
+  }
+});
+
+if (missing) {
+  // גלילה לשדה הראשון החסר
+  document.querySelector(".error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  return;
+}
 
     // שולח לסופרבייס
     await sendToSupabase(details, total);
   };
+  
 </script>
 
 </body>
